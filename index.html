@@ -1,0 +1,165 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard: Optimización del Proceso de FCE</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* bg-slate-900 */
+            color: white;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- COMPONENTE: KpiCard (Reutilizable) ---
+        const KpiCard = ({ icon, value, title, valueColor }) => {
+            return (
+                <div className="bg-slate-800 bg-opacity-50 backdrop-blur-sm p-8 rounded-2xl border border-slate-700 text-center transform hover:scale-105 transition-transform duration-300">
+                    <div className="text-6xl mb-2">{icon}</div>
+                    <h2 className={`text-6xl font-extrabold ${valueColor}`}>{value}</h2>
+                    <p className="text-slate-300 mt-2 font-semibold">{title}</p>
+                </div>
+            );
+        };
+
+  // --- COMPONENTE: KpiGrid (CORREGIDO) ---
+        const KpiGrid = () => {
+            const kpiData = [
+                // Tus nuevas tarjetas, ahora como dos objetos separados y correctos:
+                { 
+                    icon: '🏃‍♂️', 
+                    value: '3.83 Hs', 
+                    title: 'Tiempo Ejecución Manual', 
+                    color: 'text-[#f9c74f]' // Un color nuevo para distinguirlo
+                },
+                { 
+                    icon: '⚡️', 
+                    value: '15 Min', 
+                    title: 'Tiempo Ejecución Actual', 
+                    color: 'text-[#94d2bd]' 
+                },
+                // Las tarjetas originales que ya tenías:
+                { 
+                    icon: '🚀', 
+                    value: '98.4%', 
+                    title: 'Reducción de Tiempo', 
+                    color: 'text-[#94d2bd]' 
+                },
+                { 
+                    icon: '📅', 
+                    value: '~80', 
+                    title: 'Horas Recuperadas al Mes', 
+                    color: 'text-[#e9d8a6]' 
+                },
+                { 
+                    icon: '🛡️', 
+                    value: '100%', 
+                    title: 'Eliminación de Riesgo', 
+                    color: 'text-[#ee9b00]' 
+                },
+                { 
+                    icon: '🎯', 
+                    value: 'Modelo', 
+                    title: 'Escalable y Replicable', 
+                    color: 'text-[#ca6702]' 
+                }
+            ];
+
+            return (
+                <section id="kpis" className="my-16">
+                    {/* 👇 PRO-TIP: He cambiado las columnas para que el grid se vea bien con 6 elementos */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {kpiData.map((kpi, index) => <KpiCard key={index} {...kpi} />)}
+                    </div>
+                </section>
+            );
+        };
+        // --- COMPONENTE: ComparisonChart ---
+        const ComparisonChart = () => {
+            const chartRef = useRef(null);
+
+            useEffect(() => {
+                let chartInstance = null;
+                if (chartRef.current) {
+                    const ctx = chartRef.current.getContext('2d');
+                    chartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Proceso Manual', 'Proceso Automatizado'],
+                            datasets: [{
+                                data: [3.83, 0.0625],
+                                backgroundColor: ['rgba(202, 103, 2, 0.6)', 'rgba(10, 147, 150, 0.6)'],
+                                borderColor: ['#ca6702', '#0a9396'],
+                                borderWidth: 2,
+                                borderRadius: 8,
+                            }]
+                        },
+                        options: { 
+                            maintainAspectRatio: false, responsive: true, scales: { y: { beginAtZero: true, title: { display: true, text: 'Horas por Lote de 50 Facturas', color: '#cbd5e1', font: { size: 14 } }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(203, 213, 225, 0.1)' } }, x: { ticks: { color: '#94a3b8', font: { size: 14, weight: 'bold' } }, grid: { display: false } } }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e293b', titleFont: { size: 16 }, bodyFont: { size: 14 }, padding: 12, cornerRadius: 8, callbacks: { label: (ctx) => `${ctx.dataset.label || ''}: ${ctx.parsed.y < 1 ? (ctx.parsed.y * 60).toFixed(2) + ' minutos' : ctx.parsed.y.toFixed(2) + ' horas'}` } } } }
+                    });
+                }
+                return () => { if(chartInstance) chartInstance.destroy(); }
+            }, []);
+
+            return (
+                <section id="comparison" className="my-24">
+                    <div className="bg-slate-800 rounded-2xl p-6 md:p-10 border border-slate-700">
+                        <h2 className="text-3xl font-bold text-center mb-2">Evidencia del Cambio: Antes y Después</h2>
+                        <p className="text-slate-400 text-center max-w-2xl mx-auto mb-8">El siguiente gráfico ilustra la drástica reducción en el tiempo diario requerido para procesar un lote estándar de 50 facturas.</p>
+                        <div className="relative w-full max-w-4xl mx-auto h-[50vh] max-h-[450px]">
+                            <canvas ref={chartRef}></canvas>
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+        
+        const Header = () => (
+             <header className="text-center my-12">
+                 <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#94d2bd] to-[#0a9396]">Optimización del Proceso de FCE</h1>
+                 <p className="mt-4 text-lg md:text-xl text-slate-300 max-w-3xl mx-auto">Un Caso de Éxito en Eficiencia y Control mediante la Aplicación de IA para la Transformación de Procesos Manuales.</p>
+             </header>
+        );
+
+        // --- COMPONENTE PRINCIPAL: App ---
+        const App = () => {
+            return (
+                <div className="container mx-auto p-4 md:p-8">
+                    <Header />
+                    <main>
+                        <KpiGrid />
+                        <ComparisonChart />
+                    </main>
+                </div>
+            );
+        };
+
+        // 5. RENDERIZADO DE LA APP
+        ReactDOM.render(<App />, document.getElementById('root'));
+
+    </script>
+</body>
+
+</html>
